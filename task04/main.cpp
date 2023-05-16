@@ -116,6 +116,9 @@ void nearest_kdtree(
   // Currently, the computation is brute force i.e., computing distance against all the points.
   // Cull the tree branch whose nodes will not be the minimum distance points.
   // Use the "signed_distance_aabb" function above.
+  float best_dist = (pos_near - pos_in).norm(); // current best distance
+  float aabb_dist = signed_distance_aabb(pos_in, x_min, x_max, y_min, y_max); // compute the distance to bounding box
+  if (aabb_dist - best_dist > 0) { return; } //prune the branch where the distance to bounding box is larger than current best distance
 
   const Eigen::Vector2f pos = nodes[idx_node].pos;
   if ((pos - pos_in).norm() < (pos_near - pos_in).norm()) { pos_near = pos; } // update the nearest position
@@ -205,7 +208,7 @@ int main() {
 
   std::vector<Node> nodes;
   { // constructing Kd-tree's node
-    std::vector<Eigen::Vector2f> particles(100); // set number of particles
+    std::vector<Eigen::Vector2f> particles(5000); // set number of particles
     for (auto &p: particles) { // // set coordinates
       p = Eigen::Vector2f::Random() * box_size * 0.5f;
     }
@@ -215,7 +218,7 @@ int main() {
                      particles, 0, particles.size(),
                      0);
   }
-
+  
   std::chrono::system_clock::time_point start = std::chrono::system_clock::now(); // record starting time
 
   unsigned int num_div = 256; // grid resolution
